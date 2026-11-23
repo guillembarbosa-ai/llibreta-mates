@@ -1,0 +1,54 @@
+<section class="card" style="margin-bottom: 20px;">
+  <div class="card-header">
+    <h2>Plantilla d'horari · Curs <%= currentYear %></h2>
+    <a class="button small ghost" href="/courses">Gestiona cursos</a>
+  </div>
+  <div class="card-body">
+    <p class="text-sm muted">
+      Edita qualsevol casella: tria el tipus (classe, guàrdia o reunió) i escriu el nom del grup o l'etiqueta.
+      Si poses un grup nou, es crea automàticament. El color de cada grup es tria a <a href="/classes">Classes</a>.
+    </p>
+  </div>
+  <form method="post" action="/timetable/save">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="return_to" value="<%= typeof returnTo !== 'undefined' ? returnTo : '' %>">
+    <div class="table-wrap">
+      <table class="timetable-grid editable">
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <% week.forEach((day) => { %><th><%= day.name %></th><% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% SLOTS.forEach((slot, slotIndex) => { %>
+          <tr>
+            <th style="background: #fff; white-space: nowrap;"><%= slot.start %><br><small><%= slot.end %></small></th>
+            <% week.forEach((day) => { %>
+              <% const key = `${day.day}_${slotIndex}`; %>
+              <% const entry = day.cells[slotIndex].entry; %>
+              <% const kind = entry ? entry.kind : ''; %>
+              <td class="tt-edit <%= kind ? 'tt-filled-' + kind : '' %> <%= kind === 'class' && entry.class_color ? 'has-color' : '' %>"
+                  style="<%= kind === 'class' ? classCellStyle(entry.class_color) : '' %>">
+                <select name="kind_<%= key %>" aria-label="Tipus de franja">
+                  <option value="" <%= kind === '' ? 'selected' : '' %>—</option>
+                  <option value="class" <%= kind === 'class' ? 'selected' : '' %>>Classe</option>
+                  <option value="guard" <%= kind === 'guard' ? 'selected' : '' %>>Guàrdia</option>
+                  <option value="meeting" <%= kind === 'meeting' ? 'selected' : '' %>>Reunió</option>
+                </select>
+                <input type="text" name="label_<%= key %>" maxlength="80"
+                       placeholder="Grup o etiqueta" value="<%= entry ? entry.label : '' %>">
+              </td>
+            <% }) %>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+      <button class="button" type="submit">Desa l'horari</button>
+      <span class="text-sm muted">Les sessions ja creades no s'esborren en desar l'horari.</span>
+      <a class="text-sm" href="/timetable">CSV i generació de sessions →</a>
+    </div>
+  </form>
+</section>

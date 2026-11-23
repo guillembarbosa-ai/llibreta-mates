@@ -1,0 +1,43 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<div class="grid main-side">
+  <section class="card">
+    <div class="card-header"><h2>Les meves classes</h2><span class="text-sm muted"><%= classes.length %> classes</span></div>
+    <div class="table-wrap">
+      <% if (classes.length === 0) { %>
+        <div class="empty"><span class="empty-icon">♧</span><strong>Encara no estàs en cap classe</strong>Demana el codi al teu professor i afegeix-te'n.</div>
+      <% } else { %>
+      <table>
+        <thead><tr><th>Classe</th><th>Professor</th><th>Sessions</th><th></th></tr></thead>
+        <tbody>
+          <% classes.forEach((classRow) => { %>
+          <tr>
+            <td><a class="table-link" href="/classes/<%= classRow.id %>"><span class="color-dot" style="background:<%= colorOf(classRow.color).bg %>;border-color:<%= colorOf(classRow.color).border %>"></span><%= classRow.name %></a><br><small><%= [classRow.subject, classRow.school_year].filter(Boolean).join(' · ') %></small></td>
+            <td><%= classRow.teacher_name %></td>
+            <td><%= classRow.session_count %></td>
+            <td><a class="button small ghost" href="/classes/<%= classRow.id %>">Obre</a></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% } %>
+    </div>
+  </section>
+
+  <aside class="card">
+    <div class="card-header"><h3>Afegir-me a una classe</h3></div>
+    <div class="card-body">
+      <form method="post" action="/classes/join" class="stack" style="gap: 14px;">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field">
+          <label for="code">Codi de la classe</label>
+          <input id="code" name="code" required maxlength="12" placeholder="Ex.: MAT1A" style="text-transform: uppercase; letter-spacing: .14em;">
+          <span class="hint">El codi et el dona el professor.</span>
+        </div>
+        <button class="button block" type="submit">Afegir-me</button>
+      </form>
+    </div>
+  </aside>
+</div>
+
+<%- include('partials/footer') %>

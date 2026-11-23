@@ -1,0 +1,27 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<section class="card">
+  <div class="card-header"><h2>Historial de lliuraments</h2><span class="text-sm muted"><%= submissions.length %></span></div>
+  <div class="table-wrap">
+    <% if (submissions.length === 0) { %>
+      <div class="empty"><span class="empty-icon">↑</span><strong>Encara no has lliurat cap tasca</strong>Consulta el tauler per veure les tasques pendents.</div>
+    <% } else { %>
+    <table>
+      <thead><tr><th>Activitat</th><th>Classe</th><th>Lliurat</th><th>Nota</th><th></th></tr></thead>
+      <tbody>
+        <% submissions.forEach((item) => { %>
+        <tr>
+          <td><strong><%= item.activity_title %></strong><br><small><%= item.session_title %></small></td>
+          <td><span class="class-chip" style="<%= classColorStyle(item.class_color) %>"><%= item.class_name %></span></td>
+          <td><%= formatDateTime(item.submitted_at) %><% if (item.file_name) { %><br><small>📎 <%= item.file_name %></small><% } %></td>
+          <td><% if (item.grade !== null) { %><span class="grade <%= item.grade >= 5 ? 'pass' : 'fail' %>"><%= Number(item.grade).toFixed(1) %></span><% } else { %><span class="badge blue">Per corregir</span><% } %></td>
+          <td><a class="button small ghost" href="/submissions/<%= item.id %>">Veure</a></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,65 @@
+<%- include('partials/header', { title }) %>
+
+<div class="card" style="max-width: 860px;">
+  <div class="card-header"><h2><%= activity ? 'Dades de l’activitat' : 'Nova activitat' %></h2></div>
+  <div class="card-body">
+    <% if (error) { %><div class="alert danger"><%= error %></div><% } %>
+    <form method="post" action="<%= action %>" class="stack" style="gap: 16px;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="field">
+        <label for="title">Títol *</label>
+        <input id="title" name="title" required value="<%= activity ? activity.title || '' : '' %>">
+      </div>
+
+      <div class="field">
+        <label for="description">Descripció i instruccions</label>
+        <textarea id="description" name="description" rows="5" placeholder="Què han de fer els alumnes?"><%= activity ? activity.description || '' : '' %></textarea>
+      </div>
+
+      <div class="form-grid">
+        <div class="field"><label for="subject">Matèria</label><input id="subject" name="subject" value="<%= activity ? activity.subject || '' : '' %>"></div>
+        <div class="field"><label for="level">Nivell</label><input id="level" name="level" value="<%= activity ? activity.level || '' : '' %>"></div>
+        <div class="field">
+          <label for="activity_type">Tipus</label>
+          <select id="activity_type" name="activity_type">
+            <option value="">—</option>
+            <% ['Exercici', 'Pràctica', 'Problema', 'Qüestionari', 'Projecte', 'Debat', 'Lectura'].forEach((type) => { %>
+              <option value="<%= type %>" <%= activity && activity.activity_type === type ? 'selected' : '' %>><%= type %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field">
+          <label for="difficulty">Dificultat</label>
+          <select id="difficulty" name="difficulty">
+            <option value="baixa" <%= activity && activity.difficulty === 'baixa' ? 'selected' : '' %>>Fàcil</option>
+            <option value="mitjana" <%= !activity || activity.difficulty === 'mitjana' ? 'selected' : '' %>>Mitjana</option>
+            <option value="alta" <%= activity && activity.difficulty === 'alta' ? 'selected' : '' %>>Difícil</option>
+          </select>
+        </div>
+        <div class="field"><label for="duration_min">Durada (minuts)</label><input id="duration_min" name="duration_min" type="number" min="1" value="<%= activity && activity.duration_min ? activity.duration_min : '' %>"></div>
+      </div>
+
+      <div class="field">
+        <label for="objectives">Objectius d'aprenentatge</label>
+        <textarea id="objectives" name="objectives" rows="3"><%= activity ? activity.objectives || '' : '' %></textarea>
+      </div>
+
+      <div class="field">
+        <label for="tags">Etiquetes</label>
+        <% const tagValue = activity && typeof activity.tags === 'string' && activity.tags.trim().startsWith('[')
+             ? parseTags(activity.tags).join(', ')
+             : (activity && activity.tags) || ''; %>
+        <input id="tags" name="tags" value="<%= tagValue %>" placeholder="Ex.: àlgebra, equacions, repàs">
+        <span class="hint">Separa les etiquetes amb comes.</span>
+      </div>
+
+      <div class="form-actions">
+        <button class="button" type="submit"><%= activity ? 'Desar canvis' : 'Crear activitat' %></button>
+        <a class="button ghost" href="<%= activity ? '/activities/' + activity.id : '/activities' %>">Cancel·la</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

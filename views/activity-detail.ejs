@@ -1,0 +1,63 @@
+<%- include('partials/header', { title }) %>
+
+<div class="grid main-side">
+  <div class="stack">
+    <section class="card">
+      <div class="card-body">
+        <div class="row" style="margin-bottom: 14px;">
+          <% if (activity.subject) { %><span class="badge blue"><%= activity.subject %></span><% } %>
+          <% if (activity.level) { %><span class="badge"><%= activity.level %></span><% } %>
+          <% if (activity.activity_type) { %><span class="badge"><%= activity.activity_type %></span><% } %>
+          <span class="badge <%= activity.difficulty === 'alta' ? 'red' : activity.difficulty === 'baixa' ? 'green' : 'amber' %>"><%= difficultyLabel(activity.difficulty) %></span>
+          <% if (activity.duration_min) { %><span class="badge">◷ <%= activity.duration_min %> min</span><% } %>
+        </div>
+        <h2 class="mb-0"><%= activity.title %></h2>
+        <div style="margin-top: 18px; white-space: pre-wrap;"><%= activity.description || 'Sense descripció.' %></div>
+
+        <% if (activity.objectives) { %>
+        <div class="feedback" style="margin-top: 20px;">
+          <strong>Objectius d'aprenentatge</strong>
+          <div style="white-space: pre-wrap;"><%= activity.objectives %></div>
+        </div>
+        <% } %>
+
+        <% const tags = parseTags(activity.tags); if (tags.length) { %>
+        <div class="tag-list" style="margin-top: 18px;"><% tags.forEach((tag) => { %><span class="tag">#<%= tag %></span><% }) %></div>
+        <% } %>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header"><h2>S'ha fet servir en sessions</h2><span class="text-sm muted"><%= usage.length %></span></div>
+      <div class="card-body" style="padding-top: 6px; padding-bottom: 6px;">
+        <% if (usage.length === 0) { %>
+          <p class="muted text-sm">Aquesta activitat encara no s'ha assignat a cap sessió.</p>
+        <% } else { %>
+          <% usage.forEach((item) => { %>
+          <div class="spread" style="padding: 11px 0; border-bottom: 1px solid var(--line);">
+            <div><a class="table-link" href="/sessions/<%= item.session_id %>"><%= item.session_title %></a><br><small><span class="class-chip" style="<%= classColorStyle(item.class_color) %>"><%= item.class_name %></span> · <%= formatDate(item.session_date) %></small></div>
+          </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </section>
+  </div>
+
+  <aside class="card">
+    <div class="card-header"><h3>Accions</h3></div>
+    <div class="card-body stack" style="gap: 10px;">
+      <% if (user.role === 'teacher') { %>
+        <a class="button block soft" href="/activities/<%= activity.id %>/edit">Editar activitat</a>
+        <a class="button block ghost" href="/sessions/new?activity_id=<%= activity.id %>">Afegir a una sessió</a>
+        <form method="post" action="/activities/<%= activity.id %>/delete" data-confirm="Eliminar aquesta activitat? També s'eliminarà de les sessions on s'ha fet servir.">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="button danger block" type="submit">Eliminar</button>
+        </form>
+      <% } else { %>
+        <a class="button block ghost" href="/activities">Torna a la biblioteca</a>
+      <% } %>
+    </div>
+  </aside>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,77 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<div class="grid main-side">
+  <section class="card">
+    <div class="card-header"><h2>Les teves classes</h2><span class="text-sm muted"><%= classes.length %> classes · curs <%= currentYear %></span></div>
+    <div class="table-wrap">
+      <% if (classes.length === 0) { %>
+        <div class="empty"><span class="empty-icon">♧</span><strong>Crea la primera classe</strong>Afegeix un grup per començar a organitzar sessions.</div>
+      <% } else { %>
+      <table>
+        <thead><tr><th>Color i grup</th><th>Codi</th><th>Alumnes</th><th>Sessions</th><th></th></tr></thead>
+        <tbody>
+          <% classes.forEach((classRow) => { %>
+          <% const color = colorOf(classRow.color); %>
+          <tr>
+            <td>
+              <a class="table-link" href="/classes/<%= classRow.id %>">
+                <span class="color-dot" style="background:<%= color.bg %>;border-color:<%= color.border %>"></span>
+                <%= classRow.name %>
+              </a>
+              <% if (classRow.id === activeClassId) { %><span class="badge blue" style="margin-left: 6px;">Gestionant</span><% } %>
+              <br><small><%= [classRow.subject, classRow.level, classRow.school_year].filter(Boolean).join(' · ') %></small>
+            </td>
+            <td><strong class="text-sm" style="letter-spacing: .1em;"><%= classRow.code %></strong></td>
+            <td><%= classRow.student_count %></td>
+            <td><%= classRow.session_count %></td>
+            <td>
+              <form method="post" action="/classes/<%= classRow.id %>/color" class="row color-form" style="gap: 6px;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <select name="color" aria-label="Color de <%= classRow.name %>" onchange="this.form.requestSubmit()">
+                  <% GROUP_COLORS.forEach((option) => { %>
+                    <option value="<%= option.key %>" <%= option.key === classRow.color ? 'selected' : '' %>><%= option.label %></option>
+                  <% }) %>
+                </select>
+                <a class="button small ghost" href="/classes/<%= classRow.id %>">Obre</a>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% } %>
+    </div>
+    <div class="card-body">
+      <p class="text-sm muted mb-0">El color de cada grup es mostra a l'horari, a les sessions i a les llistes. Pots canviar-lo quan vulguis des d'aquesta taula.</p>
+    </div>
+  </section>
+
+  <aside class="card">
+    <div class="card-header"><h3>Nova classe</h3></div>
+    <div class="card-body">
+      <form method="post" action="/classes" class="stack" style="gap: 14px;">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field"><label for="name">Nom del grup</label><input id="name" name="name" required placeholder="Ex.: 2n Batxillerat B"></div>
+        <div class="field"><label for="subject">Matèria</label><input id="subject" name="subject" placeholder="Ex.: Física"></div>
+        <div class="field"><label for="level">Nivell</label><input id="level" name="level" placeholder="Ex.: Batxillerat"></div>
+        <div class="field">
+          <label>Color del grup</label>
+          <div class="color-picker">
+            <% GROUP_COLORS.forEach((option, index) => { %>
+            <label class="color-option" title="<%= option.label %>">
+              <input type="radio" name="color" value="<%= option.key %>" <%= index === 0 ? 'checked' : '' %>>
+              <span class="color-swatch" style="background:<%= option.bg %>;border-color:<%= option.border %>"></span>
+            </label>
+            <% }) %>
+          </div>
+        </div>
+        <div class="field"><label>Curs escolar</label><span class="badge blue" style="align-self: flex-start;"><%= currentYear %></span></div>
+        <input type="hidden" name="school_year" value="<%= currentYear %>">
+        <button class="button block" type="submit">Crear classe</button>
+      </form>
+      <p class="hint text-sm mt-0" style="margin-top: 14px;">Es generarà un codi perquè els alumnes s'hi puguin afegir.</p>
+    </div>
+  </aside>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,23 @@
+<%- include('partials/auth-header', { title }) %>
+  <h2>Benvingut de nou</h2>
+  <p>Entra amb el teu compte per continuar.</p>
+
+  <% if (error) { %><div class="alert danger"><%= error %></div><% } %>
+
+  <form method="post" action="/login">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="field">
+      <label for="email">Correu electrònic</label>
+      <input id="email" name="email" type="email" autocomplete="username" required
+             value="<%= typeof email !== 'undefined' ? email : '' %>">
+    </div>
+    <div class="field">
+      <label for="password">Contrasenya</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+    </div>
+    <button class="button block" type="submit">Entrar</button>
+  </form>
+
+  <p class="auth-switch">Encara no tens compte? <a href="/register">Crea'n un</a></p>
+
+<%- include('partials/auth-footer') %>

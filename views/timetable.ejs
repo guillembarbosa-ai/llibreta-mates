@@ -1,0 +1,57 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<%- include('partials/timetable-editor') %>
+
+<div class="grid cols-2" style="margin-bottom: 20px;">
+  <section class="card">
+    <div class="card-header"><h2>Genera sessions</h2></div>
+    <div class="card-body">
+      <p class="text-sm muted">
+        Les franges de classe es converteixen en sessions datades, amb el grup i l'hora. Les guàrdies i les reunions no generen sessions.
+        Si tornes a prémer el botó, no es dupliquen les sessions ja generades.
+      </p>
+      <form method="post" action="/timetable/generate" class="form-grid" style="align-items: end;">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field"><label for="start">Des de</label><input id="start" name="start" type="date" required value="<%= rangeStart %>"></div>
+        <div class="field"><label for="end">Fins a</label><input id="end" name="end" type="date" required value="<%= rangeEnd %>"></div>
+        <div class="field"><button class="button" type="submit">Genera sessions</button></div>
+      </form>
+      <p class="text-sm mt-0" style="margin-top: 12px;">
+        <span class="badge blue"><%= generated %> sessions generades</span> en el rang indicat.
+      </p>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h2>Plantilla CSV</h2></div>
+    <div class="card-body">
+      <p class="text-sm muted">
+        Pots descarregar la plantilla en format taula, editar-la amb Excel o fulls de càlcul i tornar-la a pujar.
+        Columnes: <code>dia, hora_inici, hora_fi, tipus, grup_o_etiqueta</code>. El dia pot ser 1–5 o el nom en català.
+      </p>
+      <p><a class="button small soft" href="/timetable/template.csv">Baixa horari-<%= currentYear %>.csv</a></p>
+      <form method="post" action="/timetable/import?_csrf=<%= csrfToken %>" enctype="multipart/form-data" class="row" style="align-items: end;">
+        <div class="field" style="flex: 1;">
+          <label for="csv">Puja un CSV editat</label>
+          <input id="csv" name="file" type="file" accept=".csv,text/csv" required>
+        </div>
+        <button class="button" type="submit">Importa</button>
+      </form>
+    </div>
+  </section>
+</div>
+
+<section class="card">
+  <div class="card-header"><h2>Sessions setmanals per grup</h2><span class="text-sm muted">Curs <%= currentYear %></span></div>
+  <div class="card-body row">
+    <% if (summary.length === 0) { %>
+      <p class="text-sm muted mb-0">Encara no hi ha grups a l'horari d'aquest curs.</p>
+    <% } else { %>
+      <% summary.forEach((item) => { %>
+        <span class="class-chip" style="<%= classColorStyle(item.color) %>"><%= item.name %> · <%= item.count %> / setmana</span>
+      <% }) %>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

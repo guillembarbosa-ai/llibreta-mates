@@ -1,0 +1,65 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<div class="grid cols-3" style="margin-bottom: 22px;">
+  <div class="card card-body">
+    <div class="stat"><span class="stat-icon">♧</span><div><div class="stat-value"><%= stats.classes %></div><div class="stat-label">Les meves classes</div></div></div>
+  </div>
+  <div class="card card-body">
+    <div class="stat"><span class="stat-icon">◷</span><div><div class="stat-value"><%= stats.pending %></div><div class="stat-label">Tasques pendents</div></div></div>
+  </div>
+  <div class="card card-body">
+    <div class="stat"><span class="stat-icon">↑</span><div><div class="stat-value"><%= stats.submitted %></div><div class="stat-label">Tasques lliurades</div></div></div>
+  </div>
+  <div class="card card-body">
+    <div class="stat"><span class="stat-icon">★</span><div><div class="stat-value"><%= stats.graded %></div><div class="stat-label">Avaluades</div></div></div>
+  </div>
+</div>
+
+<div class="grid main-side">
+  <section class="card">
+    <div class="card-header"><h2>Tasques pendents</h2><a class="text-sm" href="/submissions">Veure totes →</a></div>
+    <div class="card-body" style="padding-top: 6px; padding-bottom: 6px;">
+      <% if (pending.length === 0) { %>
+        <div class="empty"><span class="empty-icon">✓</span><strong>Ho tens al dia!</strong>No tens cap tasca pendent.</div>
+      <% } else { %>
+        <% pending.forEach((task) => { %>
+        <div class="session-item">
+          <div class="item-main">
+            <h3><a class="table-link" href="/submissions/new/<%= task.assignment_id %>"><%= task.activity_title %></a></h3>
+            <p><span class="class-chip" style="<%= classColorStyle(task.class_color) %>"><%= task.class_name %></span> · <%= task.session_title %><% if (task.subject) { %> · <%= task.subject %><% } %></p>
+            <div class="row">
+              <% if (task.due_at) { %><span class="badge amber">Data límit: <%= formatDateTime(task.due_at) %></span><% } %>
+              <span class="badge"><%= difficultyLabel(task.difficulty) %></span>
+            </div>
+          </div>
+          <a class="button small" href="/submissions/new/<%= task.assignment_id %>">Lliurar</a>
+        </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </section>
+
+  <aside class="stack">
+    <section class="card">
+      <div class="card-header"><h3>Últimes notes</h3></div>
+      <div class="card-body" style="padding-top: 6px; padding-bottom: 6px;">
+        <% if (grades.length === 0) { %>
+          <p class="muted text-sm mb-0">Encara no tens notes assignades.</p>
+        <% } else { %>
+          <% grades.forEach((item) => { %>
+          <div class="spread" style="padding: 10px 0; border-bottom: 1px solid var(--line);">
+            <div><strong class="text-sm"><%= item.activity_title %></strong><br><small><span class="class-chip" style="<%= classColorStyle(item.class_color) %>"><%= item.class_name %></span></small></div>
+            <span class="grade <%= item.grade >= 5 ? 'pass' : 'fail' %>"><%= Number(item.grade).toFixed(1) %></span>
+          </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </section>
+    <section class="card card-body">
+      <h3 class="mb-0">Encara no estàs en cap classe?</h3>
+      <p class="text-sm muted mt-0">Demana al professor el codi de la classe i afegeix-te des de la secció Classes.</p>
+    </section>
+  </aside>
+</div>
+
+<%- include('partials/footer') %>

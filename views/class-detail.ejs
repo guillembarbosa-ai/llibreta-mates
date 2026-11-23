@@ -1,0 +1,104 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<div class="grid main-side">
+  <div class="stack">
+    <section class="card">
+      <div class="card-header"><h2>Sessions d'aquesta classe</h2><a class="text-sm" href="/sessions/new?class_id=<%= classRow.id %>">+ Nova sessió</a></div>
+      <div class="card-body" style="padding-top: 6px; padding-bottom: 6px;">
+        <% if (sessions.length === 0) { %>
+          <div class="empty"><span class="empty-icon">▤</span><strong>Cap sessió encara</strong>Programa la primera sessió d'aquesta classe.</div>
+        <% } else { %>
+          <% sessions.forEach((session) => { %>
+          <div class="session-item">
+            <div class="item-date"><strong><%= Number(session.session_date.slice(8, 10)) %></strong><span><%= formatDate(session.session_date).split(' ')[1] %></span></div>
+            <div class="item-main">
+              <h3><a class="table-link" href="/sessions/<%= session.id %>"><%= session.title %></a></h3>
+              <p><%= session.start_time ? session.start_time + (session.end_time ? '–' + session.end_time : '') + ' · ' : '' %><%= session.activity_count %> <%= session.activity_count === 1 ? 'activitat' : 'activitats' %><% if (session.objectives) { %> · <%= session.objectives %><% } %></p>
+              <span class="badge <%= session.status === 'finalitzada' ? '' : session.status === 'en_curs' ? 'blue' : 'amber' %>"><%= statusLabel(session.status) %></span>
+            </div>
+          </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </section>
+
+    <% if (user.role === 'teacher') { %>
+    <section class="card">
+      <div class="card-header" id="alumnes"><h2>Alumnes</h2><span class="text-sm muted"><%= students.length %> matriculats</span></div>
+      <div class="table-wrap">
+        <% if (students.length === 0) { %>
+          <div class="empty"><span class="empty-icon">♧</span><strong>Cap alumne matriculat</strong>Afegeix alumnes amb el seu correu o comparteix el codi de la classe.</div>
+        <% } else { %>
+        <table>
+          <thead><tr><th>Alumne</th><th>Correu</th><th>Lliuraments</th><th></th></tr></thead>
+          <tbody>
+            <% students.forEach((student) => { %>
+            <tr>
+              <td><strong><%= student.name %></strong></td>
+              <td class="muted text-sm"><%= student.email %></td>
+              <td><%= student.submission_count %></td>
+              <td>
+                <form method="post" action="/classes/<%= classRow.id %>/students/remove" data-confirm="Treure aquest alumne de la classe?">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="student_id" value="<%= student.id %>">
+                  <button class="button small danger" type="submit">Treure</button>
+                </form>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+  </div>
+
+  <aside class="stack">
+    <section class="card">
+      <div class="card-header"><h3>Dades de la classe</h3></div>
+      <div class="card-body stack" style="gap: 10px;">
+        <div><small>Color del grup</small><div><span class="class-chip" style="<%= classColorStyle(classRow.color) %>"><%= colorOf(classRow.color).label %></span></div></div>
+        <% if (user.role === 'teacher') { %>
+        <form method="post" action="/classes/<%= classRow.id %>/color" class="color-picker">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <% GROUP_COLORS.forEach((option) => { %>
+          <label class="color-option" title="<%= option.label %>">
+            <input type="radio" name="color" value="<%= option.key %>" <%= option.key === classRow.color ? 'checked' : '' %> onchange="this.form.requestSubmit()">
+            <span class="color-swatch" style="background:<%= option.bg %>;border-color:<%= option.border %>"></span>
+          </label>
+          <% }) %>
+        </form>
+        <% } %>
+        <div><small>Matèria</small><div><strong><%= classRow.subject || '—' %></strong></div></div>
+        <div><small>Nivell</small><div><strong><%= classRow.level || '—' %></strong></div></div>
+        <div><small>Curs escolar</small><div><strong><%= classRow.school_year || '—' %></strong></div></div>
+        <div class="code-box"><div><small>Codi d'accés</small><br><strong><%= classRow.code %></strong></div><span class="muted">♧</span></div>
+        <% if (user.role === 'teacher') { %>
+        <p class="hint text-sm mb-0">Comparteix aquest codi amb els alumnes perquè s'hi puguin afegir des de Classes.</p>
+        <% } %>
+      </div>
+    </section>
+
+    <% if (user.role === 'teacher') { %>
+    <section class="card">
+      <div class="card-header"><h3>Afegir alumne</h3></div>
+      <div class="card-body">
+        <form method="post" action="/classes/<%= classRow.id %>/students" class="stack" style="gap: 12px;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div class="field"><label for="email">Correu de l'alumne</label><input id="email" name="email" type="email" required placeholder="alumne@correu.cat"></div>
+          <button class="button block soft" type="submit">Afegir</button>
+        </form>
+      </div>
+    </section>
+    <section class="card card-body">
+      <form method="post" action="/classes/<%= classRow.id %>/delete" data-confirm="Eliminar la classe i totes les seves sessions? Això no es pot desfer.">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="button danger block" type="submit">Eliminar classe</button>
+      </form>
+    </section>
+    <% } %>
+  </aside>
+</div>
+
+<%- include('partials/footer') %>

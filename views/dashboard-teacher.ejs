@@ -1,0 +1,88 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<div class="grid cols-3" style="margin-bottom: 22px;">
+  <div class="card card-body">
+    <div class="stat"><span class="stat-icon">♧</span><div><div class="stat-value"><%= stats.classes %></div><div class="stat-label">Classes actives</div></div></div>
+  </div>
+  <div class="card card-body">
+    <div class="stat"><span class="stat-icon">◇</span><div><div class="stat-value"><%= stats.activities %></div><div class="stat-label">Activitats a la biblioteca</div></div></div>
+  </div>
+  <div class="card card-body">
+    <div class="stat"><span class="stat-icon">▤</span><div><div class="stat-value"><%= stats.sessions %></div><div class="stat-label">Sessions pendents</div></div></div>
+  </div>
+  <div class="card card-body">
+    <div class="stat"><span class="stat-icon">✓</span><div><div class="stat-value"><%= stats.pending %></div><div class="stat-label">Lliuraments per corregir</div></div></div>
+  </div>
+</div>
+
+<div class="grid main-side">
+  <div class="stack">
+    <section class="card">
+      <div class="card-header">
+        <h2>Properes sessions</h2>
+        <a class="text-sm" href="/sessions">Veure totes →</a>
+      </div>
+      <div class="card-body" style="padding-top: 6px; padding-bottom: 6px;">
+        <% if (upcoming.length === 0) { %>
+          <div class="empty"><span class="empty-icon">▤</span><strong>No hi ha sessions programades</strong>Crea una sessió per començar a planificar.</div>
+        <% } else { %>
+          <% upcoming.forEach((session) => { %>
+          <div class="session-item">
+            <div class="item-date"><strong><%= Number(session.session_date.slice(8, 10)) %></strong><span><%= formatDate(session.session_date).split(' ')[1] %></span></div>
+            <div class="item-main">
+              <h3><a class="table-link" href="/sessions/<%= session.id %>"><%= session.title %></a></h3>
+              <p><span class="class-chip" style="<%= classColorStyle(session.class_color) %>"><%= session.class_name %></span> · <%= session.start_time ? session.start_time + (session.end_time ? '–' + session.end_time : '') + ' · ' : '' %><%= session.activity_count %> <%= session.activity_count === 1 ? 'activitat' : 'activitats' %></p>
+              <span class="badge <%= session.status === 'en_curs' ? 'blue' : 'amber' %>"><%= statusLabel(session.status) %></span>
+            </div>
+          </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header"><h2>Últims lliuraments</h2><a class="text-sm" href="/submissions">Veure tots →</a></div>
+      <div class="table-wrap">
+        <% if (recent.length === 0) { %>
+          <div class="empty"><span class="empty-icon">✓</span><strong>Encara no hi ha lliuraments</strong>Quan els alumnes pugin tasques, apareixeran aquí.</div>
+        <% } else { %>
+        <table>
+          <thead><tr><th>Alumne</th><th>Activitat</th><th>Data</th><th>Nota</th><th></th></tr></thead>
+          <tbody>
+            <% recent.forEach((item) => { %>
+            <tr>
+              <td><strong><%= item.student_name %></strong></td>
+              <td><%= item.activity_title %><br><small><%= item.session_title %></small></td>
+              <td><%= formatDateTime(item.submitted_at) %></td>
+              <td><% if (item.grade !== null) { %><span class="grade <%= item.grade >= 5 ? 'pass' : 'fail' %>"><%= Number(item.grade).toFixed(1) %></span><% } else { %><span class="badge amber">Per corregir</span><% } %></td>
+              <td><a class="button small soft" href="/submissions/<%= item.id %>">Corregir</a></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <section class="card">
+      <div class="card-header"><h3>Accions ràpides</h3></div>
+      <div class="card-body stack" style="gap: 10px;">
+        <a class="button block soft" href="/sessions/new">+ Nova sessió</a>
+        <a class="button block soft" href="/activities/new">+ Nova activitat</a>
+        <a class="button block ghost" href="/classes">Gestionar classes</a>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-header"><h3>Com funciona</h3></div>
+      <div class="card-body text-sm muted mb-0">
+        <p><strong>1.</strong> Crea activitats a la biblioteca.</p>
+        <p><strong>2.</strong> Programa sessions i hi afegeix activitats.</p>
+        <p><strong>3.</strong> Els alumnes lliuren i tu ho corriges.</p>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<%- include('partials/footer') %>

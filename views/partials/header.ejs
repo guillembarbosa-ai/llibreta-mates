@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> · Aula dia a dia</title>
+  <link rel="stylesheet" href="/styles.css?v=3">
+</head>
+<%
+  const isPrincipal = !!(user && user.role === 'teacher' && !activeClassId);
+  const showSidebar = !!(user && !isPrincipal);
+%>
+<body class="<%= isPrincipal ? 'is-principal' : '' %>">
+<div class="layout<%= isPrincipal ? ' layout-full' : '' %>">
+  <% if (showSidebar) { %>
+  <aside class="sidebar">
+    <a class="brand" href="/">
+      <span class="brand-mark">A</span>
+      <span class="brand-text">Aula<span>dia a dia</span></span>
+    </a>
+
+    <nav class="side-nav">
+      <span class="nav-section">Espai de treball</span>
+      <a href="/" class="<%= currentPath === '/' ? 'active' : '' %>">
+        <span class="nav-icon">▦</span> Tauler
+      </a>
+      <% if (user.role === 'teacher') { %>
+      <a href="/timetable" class="<%= currentPath.startsWith('/timetable') ? 'active' : '' %>">
+        <span class="nav-icon">◷</span> Horari
+      </a>
+      <% } %>
+      <a href="/sessions" class="<%= currentPath.startsWith('/sessions') ? 'active' : '' %>">
+        <span class="nav-icon">▤</span> Sessions
+      </a>
+      <a href="/activities" class="<%= currentPath.startsWith('/activities') ? 'active' : '' %>">
+        <span class="nav-icon">◇</span> Activitats
+      </a>
+      <a href="/submissions" class="<%= currentPath.startsWith('/submissions') ? 'active' : '' %>">
+        <span class="nav-icon">✓</span>
+        <%= user.role === 'teacher' ? 'Lliuraments' : 'Les meves tasques' %>
+      </a>
+      <% if (user.role === 'teacher') { %>
+      <a href="/classes" class="<%= currentPath.startsWith('/classes') ? 'active' : '' %>">
+        <span class="nav-icon">♧</span> Classes
+      </a>
+      <a href="/" class="nav-back">
+        <span class="nav-icon">⌂</span> Tots els grups
+      </a>
+      <% } %>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <p class="sidebar-version">Aula dia a dia · v0.1</p>
+    </div>
+  </aside>
+  <% } %>
+
+  <div class="workspace">
+    <header class="topbar">
+      <% if (isPrincipal) { %>
+      <a class="brand topbar-brand" href="/">
+        <span class="brand-mark">A</span>
+        <span class="brand-text">Aula<span>dia a dia</span></span>
+      </a>
+      <% } %>
+      <div class="topbar-title">
+        <h1><%= title %></h1>
+        <% if (typeof subtitle !== 'undefined' && subtitle) { %><p class="subtitle"><%= subtitle %></p><% } %>
+      </div>
+      <div class="topbar-right">
+        <% if (user) { %>
+        <form method="post" action="/logout" class="logout-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="icon-button" type="submit" title="Tancar sessió" aria-label="Tancar sessió">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+        </form>
+        <% } %>
+      </div>
+    </header>
+
+    <main class="content">
+      <% if (notice) { %><div class="alert success"><%= notice %></div><% } %>
+      <% if (error) { %><div class="alert danger"><%= error %></div><% } %>

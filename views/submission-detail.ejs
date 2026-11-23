@@ -1,0 +1,82 @@
+<%- include('partials/header', { title, subtitle: submission.activity_title }) %>
+
+<div class="grid main-side">
+  <div class="stack">
+    <section class="card">
+      <div class="card-header">
+        <h2><%= submission.activity_title %></h2>
+        <span class="class-chip" style="<%= classColorStyle(submission.class_color) %>"><%= submission.class_name %></span> <span class="text-sm muted"><%= submission.session_title %></span>
+      </div>
+      <div class="card-body">
+        <div class="row" style="margin-bottom: 18px;">
+          <span class="badge blue"><%= submission.student_name %></span>
+          <span class="text-sm muted">Lliurat el <%= formatDateTime(submission.submitted_at) %></span>
+          <% if (submission.due_at) { %><span class="badge">Límit: <%= formatDateTime(submission.due_at) %></span><% } %>
+        </div>
+
+        <% if (submission.instructions) { %>
+          <p class="text-sm"><strong>Instruccions:</strong> <%= submission.instructions %></p>
+        <% } %>
+
+        <h3>Resposta de l'alumne</h3>
+        <div style="white-space: pre-wrap; background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-height: 80px;">
+          <%= submission.text || 'No ha escrit cap text.' %>
+        </div>
+
+        <% if (submission.file_name) { %>
+          <div style="margin-top: 16px;">
+            <a class="file-link" href="/submissions/file/<%= submission.id %>">📎 <%= submission.file_name %> · <%= formatFileSize(submission.file_size) %></a>
+          </div>
+        <% } %>
+
+        <% if (submission.grade !== null) { %>
+          <div class="feedback">
+            <div class="row spread">
+              <strong>Avaluació</strong>
+              <span class="grade <%= submission.grade >= 5 ? 'pass' : 'fail' %>"><%= Number(submission.grade).toFixed(1) %> / 10</span>
+            </div>
+            <% if (submission.feedback) { %><div style="margin-top: 6px;"><%= submission.feedback %></div><% } %>
+            <small>Corregit el <%= formatDateTime(submission.graded_at) %></small>
+          </div>
+        <% } else { %>
+          <div class="alert danger" style="margin: 18px 0 0;">Aquest lliurament encara no s'ha avaluat.</div>
+        <% } %>
+      </div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <% if (user.role === 'teacher') { %>
+    <section class="card">
+      <div class="card-header"><h3>Correcció</h3></div>
+      <div class="card-body">
+        <form method="post" action="/submissions/<%= submission.id %>/grade" class="stack" style="gap: 14px;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div class="field">
+            <label for="grade">Nota (0–10)</label>
+            <input id="grade" name="grade" type="number" min="0" max="10" step="0.1"
+                   value="<%= submission.grade !== null ? submission.grade : '' %>" placeholder="Ex.: 7.5">
+          </div>
+          <div class="field">
+            <label for="feedback">Comentaris per a l'alumne</label>
+            <textarea id="feedback" name="feedback" rows="6" placeholder="Què ha fet bé? Què pot millorar?"><%= submission.feedback || '' %></textarea>
+          </div>
+          <button class="button block" type="submit">Desar avaluació</button>
+        </form>
+      </div>
+    </section>
+    <% } %>
+    <section class="card card-body">
+      <h3 class="mb-0">Navegació</h3>
+      <div class="stack" style="gap: 8px; margin-top: 12px;">
+        <a class="button ghost block" href="/submissions">Torna a llistat</a>
+        <a class="button ghost block" href="/sessions/<%= submission.session_id %>">Veure sessió</a>
+        <% if (user.role === 'student' && !submission.grade) { %>
+          <a class="button soft block" href="/submissions/new/<%= submission.assignment_id %>">Edita el lliurament</a>
+        <% } %>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<%- include('partials/footer') %>

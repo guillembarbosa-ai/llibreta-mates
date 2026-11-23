@@ -1,0 +1,90 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<div class="grid main-side">
+  <section class="card">
+    <div class="card-header">
+      <h2>Curs actiu: <%= currentYear %></h2>
+      <span class="badge blue"><%= yearRows.length %> <%= yearRows.length === 1 ? 'curs' : 'cursos' %></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Curs</th><th>Grups</th><th>Franges</th><th>Sessions</th><th>Activitats</th><th>Alumnes</th><th></th></tr></thead>
+        <tbody>
+          <% yearRows.forEach((item) => { %>
+          <tr>
+            <td>
+              <strong><%= item.year %></strong>
+              <% if (item.active) { %><span class="badge green" style="margin-left: 8px;">Actiu</span><% } %>
+            </td>
+            <td><%= item.stats.classes %></td>
+            <td><%= item.stats.entries %></td>
+            <td><%= item.stats.sessions %></td>
+            <td><%= item.stats.activities %></td>
+            <td><%= item.stats.students %></td>
+            <td>
+              <% if (!item.active) { %>
+              <form method="post" action="/courses/switch" class="row" style="gap: 6px;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="year" value="<%= item.year %>">
+                <button class="button small soft" type="submit">Posar-hi</button>
+              </form>
+              <% } %>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body">
+      <p class="text-sm muted mb-0">
+        En canviar de curs, totes les seccions (horari, classes, sessions, activitats i lliuraments) mostren només la feina d'aquest curs.
+        Els alumnes, les sessions i les notes mai es copien a un curs nou.
+      </p>
+    </div>
+  </section>
+
+  <aside class="card">
+    <div class="card-header"><h3>Curs nou</h3></div>
+    <div class="card-body">
+      <form method="post" action="/courses/create" class="stack" style="gap: 14px;">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field">
+          <label for="year">Curs escolar</label>
+          <input id="year" name="year" required placeholder="Ex.: <%= suggestedYear %>" value="<%= suggestedYear %>">
+          <span class="hint">Format AAAA-AAAA, per exemple 2027-2028.</span>
+        </div>
+        <label class="check-row">
+          <input type="checkbox" name="copy_timetable" checked>
+          <span>Copia l'horari i els grups del curs actiu</span>
+        </label>
+        <label class="check-row">
+          <input type="checkbox" name="copy_activities">
+          <span>Copia la biblioteca d'activitats</span>
+        </label>
+        <button class="button block" type="submit">Crea el curs</button>
+      </form>
+      <p class="hint text-sm mt-0" style="margin-top: 14px;">
+        Es copien els grups i les franges horàries, però sense alumnes, sessions ni notes. Després pots editar la plantilla a Horari.
+      </p>
+    </div>
+  </aside>
+</div>
+
+<% const removable = yearRows.filter((item) => !item.active && item.stats.sessions === 0); %>
+<% if (removable.length) { %>
+<section class="card" style="margin-top: 20px;">
+  <div class="card-header"><h2>Esborra un curs buit</h2></div>
+  <div class="card-body row">
+    <% removable.forEach((item) => { %>
+    <form method="post" action="/courses/delete" class="row" style="gap: 6px;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="year" value="<%= item.year %>">
+      <span class="text-sm"><%= item.year %></span>
+      <button class="button small danger" type="submit">Elimina</button>
+    </form>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+
+<%- include('partials/footer') %>

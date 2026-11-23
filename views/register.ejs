@@ -1,0 +1,41 @@
+<%- include('partials/auth-header', { title }) %>
+  <h2>Crea el teu compte</h2>
+  <p>Tria si ets professor o alumne per veure les opcions adequades.</p>
+
+  <% if (error) { %><div class="alert danger"><%= error %></div><% } %>
+
+  <form method="post" action="/register">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% const formValues = typeof values !== 'undefined' && values ? values : {}; %>
+    <div class="role-picker">
+      <label class="role-option <%= formValues.role !== 'student' ? 'selected' : '' %>">
+        <input type="radio" name="role" value="teacher" <%= formValues.role !== 'student' ? 'checked' : '' %>>
+        👩‍🏫 Professorat
+      </label>
+      <label class="role-option <%= formValues.role === 'student' ? 'selected' : '' %>">
+        <input type="radio" name="role" value="student" <%= formValues.role === 'student' ? 'checked' : '' %>>
+        🎓 Alumnat
+      </label>
+    </div>
+    <div class="field">
+      <label for="name">Nom complet</label>
+      <input id="name" name="name" type="text" required value="<%= formValues.name || '' %>">
+    </div>
+    <div class="field">
+      <label for="email">Correu electrònic</label>
+      <input id="email" name="email" type="email" autocomplete="username" required value="<%= formValues.email || '' %>">
+    </div>
+    <div class="field">
+      <label for="password">Contrasenya</label>
+      <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+      <span class="hint">Mínim 8 caràcters.</span>
+    </div>
+    <button class="button block" type="submit">Crear compte</button>
+  </form>
+
+  <div class="demo-note">
+    Si et regs com a <strong>professorat</strong>, la plantilla de l'horari s'importarà automàticament i la podràs editar a la secció Horari.
+  </div>
+
+  <p class="auth-switch">Ja tens compte? <a href="/login">Inicia sessió</a></p>
+<%- include('partials/auth-footer') %>

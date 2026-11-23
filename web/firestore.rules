@@ -1,0 +1,124 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function userData(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+
+    function isTeacher() {
+      return signedIn() && userData(request.auth.uid).role == 'teacher';
+    }
+
+    function isStudent() {
+      return signedIn() && userData(request.auth.uid).role == 'student';
+    }
+
+    function studentClassId() {
+      return isStudent() ? userData(request.auth.uid).activeClassId : null;
+    }
+
+    function studentTeacherId() {
+      return studentClassId() == null ? null
+        : get(/databases/$(database)/documents/classes/$(studentClassId())).data.teacherId;
+    }
+
+    // El doc de l'usuari només el pot llegir ell o el professorat.
+    // Registre obert: qualsevol correu pot crear un compte d'alumne o de professor.
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isTeacher();
+      allow create: if isSelf(uid)
+        && (request.resource.data.role == 'student' || request.resource.data.role == 'teacher')
+        && request.resource.data.email == request.auth.token.email;
+      allow update: if isSelf(uid)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.email == resource.data.email
+        && (resource.data.role == 'teacher'
+          || (resource.data.role == 'student'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeClassId'])
+            && resource.data.activeClassId == null));
+      allow delete: if false;
+    }
+
+    // Grups del professor autenticat; l'alumne pot veure només el grup assignat.
+    // El demo pot crear-ne; tots els professors poden editar els seus.
+    match /classes/{classId} {
+      allow read: if (signedIn() && resource.data.teacherId == request.auth.uid)
+        || (isStudent() && classId == studentClassId());
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update, delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    // Horari setmanal: dades del professor, separades per curs escolar.
+    match /timetable/{entryId} {
+      allow read: if signedIn() && resource.data.teacherId == request.auth.uid;
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update, delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    // Cursos escolars disponibles per al professor.
+    match /schoolYears/{yearId} {
+      allow read: if signedIn() && resource.data.teacherId == request.auth.uid;
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update, delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    // Alumnes convidats pel professor. L'alumne només pot reclamar la seva invitació.
+    match /students/{studentId} {
+      allow read: if signedIn()
+        && (resource.data.teacherId == request.auth.uid
+          || resource.data.uid == request.auth.uid
+          || resource.data.email == request.auth.token.email);
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      // L'alumne pot reclamar-la amb el compte que tingui obert (l'enllaç/codi és la credencial).
+      allow update: if (isTeacher() && resource.data.teacherId == request.auth.uid)
+        || (signedIn()
+          && resource.data.uid == null
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid', 'status']));
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    // Invitacions: qualsevol persona amb el codi pot veure'n les dades bàsiques i crear el compte.
+    match /invites/{code} {
+      allow read: if true;
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if (isTeacher() && resource.data.teacherId == request.auth.uid)
+        || (signedIn()
+          && resource.data.status == 'pending'
+          && request.auth.uid == request.resource.data.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid', 'status']));
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    // Preferències del professor (dies de festa de la generació de sessions).
+    match /settings/{uid} {
+      allow read, write: if isSelf(uid) && isTeacher();
+    }
+
+    // Banc d'activitats: repositori personal del professor. L'alumne només veu
+    // les activitats del professor del seu grup, per poder obrir els documents assignats.
+    match /activities/{activityId} {
+      allow read: if (isTeacher() && resource.data.teacherId == request.auth.uid)
+        || (isStudent() && resource.data.teacherId == studentTeacherId());
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update, delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    // Sessions planificades: el professor veu les seves; l'alumne només les del seu grup.
+    match /sessions/{sessionId} {
+      allow read: if (isTeacher() && resource.data.teacherId == request.auth.uid)
+        || (isStudent() && resource.data.classId == studentClassId());
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update, delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+  }
+}

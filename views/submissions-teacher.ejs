@@ -1,0 +1,49 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<form class="filter-bar" method="get" action="/submissions">
+  <select name="class_id" class="grow">
+    <option value="">Totes les classes</option>
+    <% classes.forEach((classRow) => { %>
+      <option value="<%= classRow.id %>" <%= filters.class_id === String(classRow.id) ? 'selected' : '' %>><%= classRow.name %></option>
+    <% }) %>
+  </select>
+  <select name="activity_id">
+    <option value="">Totes les activitats</option>
+    <% activities.forEach((activity) => { %>
+      <option value="<%= activity.id %>" <%= filters.activity_id === String(activity.id) ? 'selected' : '' %>><%= activity.title %></option>
+    <% }) %>
+  </select>
+  <select name="status">
+    <option value="">Tots</option>
+    <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>Per corregir</option>
+    <option value="graded" <%= filters.status === 'graded' ? 'selected' : '' %>>Corregits</option>
+  </select>
+  <input type="search" name="q" placeholder="Cercar alumne o activitat…" value="<%= filters.q %>">
+  <button class="button ghost" type="submit">Filtrar</button>
+</form>
+
+<section class="card">
+  <div class="table-wrap">
+    <% if (submissions.length === 0) { %>
+      <div class="empty"><span class="empty-icon">✓</span><strong>No hi ha lliuraments</strong>Prova a canviar els filtres.</div>
+    <% } else { %>
+    <table>
+      <thead><tr><th>Alumne</th><th>Activitat</th><th>Classe</th><th>Lliurat</th><th>Nota</th><th></th></tr></thead>
+      <tbody>
+        <% submissions.forEach((item) => { %>
+        <tr>
+          <td><strong><%= item.student_name %></strong></td>
+          <td><%= item.activity_title %><br><small><%= item.session_title %></small></td>
+          <td><span class="class-chip" style="<%= classColorStyle(item.class_color) %>"><%= item.class_name %></span></td>
+          <td><%= formatDateTime(item.submitted_at) %><% if (item.file_name) { %><br><small>📎 <%= item.file_name %></small><% } %></td>
+          <td><% if (item.grade !== null) { %><span class="grade <%= item.grade >= 5 ? 'pass' : 'fail' %>"><%= Number(item.grade).toFixed(1) %></span><% } else { %><span class="badge amber">Pendent</span><% } %></td>
+          <td><a class="button small soft" href="/submissions/<%= item.id %>"><%= item.grade === null ? 'Corregir' : 'Veure' %></a></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

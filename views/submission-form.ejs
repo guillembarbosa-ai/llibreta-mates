@@ -1,0 +1,48 @@
+<%- include('partials/header', { title, subtitle: assignment.class_name }) %>
+
+<div class="card" style="max-width: 860px;">
+  <div class="card-header">
+    <h2><%= submission ? 'Actualitza el lliurament' : 'Lliura la tasca' %></h2>
+    <% if (assignment.due_at) { %><span class="badge amber">Data límit: <%= formatDateTime(assignment.due_at) %></span><% } %>
+  </div>
+  <div class="card-body">
+    <div class="feedback mb-0" style="margin-bottom: 22px;">
+      <strong><%= assignment.activity_title %></strong>
+      <% if (assignment.instructions) { %><div><%= assignment.instructions %></div><% } %>
+      <small>Sessió: <%= assignment.session_title %></small>
+    </div>
+
+    <form method="post" action="/submissions/new/<%= assignment.id %>?_csrf=<%= csrfToken %>" enctype="multipart/form-data" class="stack" style="gap: 18px;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="field">
+        <label for="text">La teva resposta</label>
+        <textarea id="text" name="text" rows="9" placeholder="Escriu aquí la teva resposta o explicació…"><%= submission ? submission.text || '' : '' %></textarea>
+        <span class="hint">Pots escriure la resposta, pujar un fitxer o totes dues coses.</span>
+      </div>
+
+      <div class="field">
+        <label for="file">Fitxer adjunt</label>
+        <input id="file" name="file" type="file" accept=".pdf,.doc,.docx,.odt,.txt,.png,.jpg,.jpeg,.zip">
+        <span class="hint">Màxim 10 MB. Formats: PDF, Word, ODT, TXT, imatges o ZIP.</span>
+        <% if (submission && submission.file_name) { %>
+          <span class="text-sm">Fitxer actual: <a href="/submissions/file/<%= submission.id %>"><%= submission.file_name %></a></span>
+        <% } %>
+      </div>
+
+      <div class="form-actions">
+        <button class="button" type="submit"><%= submission ? 'Desar canvis' : 'Lliurar tasca' %></button>
+        <a class="button ghost" href="/sessions/<%= assignment.session_id %>">Cancel·la</a>
+      </div>
+    </form>
+
+    <% if (submission) { %>
+    <form method="post" action="/submissions/<%= submission.id %>/delete" data-confirm="Eliminar el lliurament?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="button danger small" type="submit">Eliminar lliurament</button>
+    </form>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

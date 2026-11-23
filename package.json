@@ -1,0 +1,24 @@
+{
+  "name": "aula-dia-a-dia",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma de gestió de classe: sessions, activitats, lliuraments i avaluació",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/app.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/app.js",
+    "reset": "node --disable-warning=ExperimentalWarning src/reset.js",
+    "horari": "node --disable-warning=ExperimentalWarning src/horari-cli.js",
+    "deploy:web": "npm --prefix web run deploy"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.18.0",
+    "@supabase/supabase-js": "^2.119.2",
+    "ejs": "^3.1.10",
+    "express": "^5.3.0",
+    "multer": "^2.0.2"
+  }
+}

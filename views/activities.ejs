@@ -1,0 +1,59 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<div class="row spread" style="margin-bottom: 18px;">
+  <span class="text-sm muted"><%= activities.length %> activitats</span>
+  <% if (user.role === 'teacher') { %><a class="button" href="/activities/new">+ Nova activitat</a><% } %>
+</div>
+
+<form class="filter-bar" method="get" action="/activities">
+  <input class="grow" type="search" name="q" placeholder="Cercar per títol, descripció o etiqueta…" value="<%= filters.q %>">
+  <select name="subject">
+    <option value="">Totes les matèries</option>
+    <% [...new Set(filterValues.map((item) => item.subject).filter(Boolean))].forEach((value) => { %>
+      <option value="<%= value %>" <%= filters.subject === value ? 'selected' : '' %>><%= value %></option>
+    <% }) %>
+  </select>
+  <select name="difficulty">
+    <option value="">Totes les dificultats</option>
+    <option value="baixa" <%= filters.difficulty === 'baixa' ? 'selected' : '' %>>Fàcil</option>
+    <option value="mitjana" <%= filters.difficulty === 'mitjana' ? 'selected' : '' %>>Mitjana</option>
+    <option value="alta" <%= filters.difficulty === 'alta' ? 'selected' : '' %>>Difícil</option>
+  </select>
+  <button class="button ghost" type="submit">Filtrar</button>
+  <% if (filters.q || filters.subject || filters.level || filters.activity_type || filters.difficulty) { %>
+    <a class="button ghost" href="/activities">Neteja</a>
+  <% } %>
+</form>
+
+<section class="card">
+  <div class="card-body" style="padding-top: 6px; padding-bottom: 6px;">
+    <% if (activities.length === 0) { %>
+      <div class="empty"><span class="empty-icon">◇</span><strong>No s'han trobat activitats</strong>Prova amb una altra cerca o crea'n una de nova.</div>
+    <% } else { %>
+      <% activities.forEach((activity) => { %>
+      <div class="activity-item">
+        <div class="item-main">
+          <h3><a class="table-link" href="/activities/<%= activity.id %>"><%= activity.title %></a></h3>
+          <p><%= activity.description ? activity.description.slice(0, 160) + (activity.description.length > 160 ? '…' : '') : 'Sense descripció' %></p>
+          <div class="row">
+            <% if (activity.subject) { %><span class="badge blue"><%= activity.subject %></span><% } %>
+            <% if (activity.level) { %><span class="badge"><%= activity.level %></span><% } %>
+            <% if (activity.activity_type) { %><span class="badge"><%= activity.activity_type %></span><% } %>
+            <span class="badge <%= activity.difficulty === 'alta' ? 'red' : activity.difficulty === 'baixa' ? 'green' : 'amber' %>"><%= difficultyLabel(activity.difficulty) %></span>
+            <% if (activity.duration_min) { %><span class="text-xs muted">◷ <%= activity.duration_min %> min</span><% } %>
+            <span class="text-xs muted">S'ha fet servir <%= activity.usage_count %> <%= activity.usage_count === 1 ? 'cop' : 'cops' %></span>
+          </div>
+          <% const tags = parseTags(activity.tags); if (tags.length) { %>
+          <div class="tag-list" style="margin-top: 8px;"><% tags.forEach((tag) => { %><span class="tag">#<%= tag %></span><% }) %></div>
+          <% } %>
+        </div>
+        <% if (user.role === 'teacher') { %>
+        <a class="button small ghost" href="/activities/<%= activity.id %>/edit">Editar</a>
+        <% } %>
+      </div>
+      <% }) %>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,83 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<section class="principal">
+  <div class="principal-hero">
+    <div class="principal-hero-art" aria-hidden="true">
+      <span class="orb orb-a"></span>
+      <span class="orb orb-b"></span>
+      <span class="orb orb-c"></span>
+      <span class="hero-grid"></span>
+    </div>
+    <div class="principal-hero-inner">
+      <span class="principal-eyebrow"><span class="eyebrow-dot"></span> Aula dia a dia · Curs <%= currentYear %></span>
+      <h2>Comencem, <%= user.name.split(' ')[0] %>.<br><em>Tria el teu grup.</em></h2>
+      <p class="principal-lead">
+        Primer prepara l'horari i les classes. Després entra en un grup i tot el taulell
+        es mostrarà només amb les seves dades.
+      </p>
+
+      <nav class="principal-menu" aria-label="Menú de la principal">
+        <a href="/timetable" class="principal-menu-link">
+          <span class="principal-menu-icon indigo">◷</span>
+          <span class="principal-menu-text">
+            <strong>Horari</strong>
+            <small>Organitza la setmana</small>
+          </span>
+          <span class="principal-menu-arrow">↗</span>
+        </a>
+        <a href="/classes" class="principal-menu-link">
+          <span class="principal-menu-icon teal">♧</span>
+          <span class="principal-menu-text">
+            <strong>Classes</strong>
+            <small>Grups i alumnes</small>
+          </span>
+          <span class="principal-menu-arrow">↗</span>
+        </a>
+      </nav>
+    </div>
+    <div class="principal-hero-badge" aria-hidden="true">
+      <span>01</span>
+      <small>Tria un grup per continuar</small>
+    </div>
+  </div>
+
+  <div class="principal-section-head">
+    <div>
+      <span class="section-kicker">Els teus grups</span>
+      <h3><%= groups.length %> <%= groups.length === 1 ? 'classe disponible' : 'classes disponibles' %></h3>
+    </div>
+    <span class="principal-hint">Clica un grup per entrar-hi →</span>
+  </div>
+
+  <% if (groups.length === 0) { %>
+    <div class="empty">
+      <span class="empty-icon">♧</span>
+      <strong>Encara no hi ha classes</strong>
+      Crea una classe a <a href="/classes">Classes</a> o desa l'horari a <a href="/timetable">Horari</a>.
+    </div>
+  <% } else { %>
+    <div class="principal-classes">
+      <% groups.forEach((group, index) => { %>
+      <% const color = colorOf(group.color); %>
+      <form method="post" action="/classes/activate" class="principal-class-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="class_id" value="<%= group.id %>">
+        <button class="principal-class" type="submit" style="--card-bg:<%= color.bg %>;--card-border:<%= color.border %>;--card-text:<%= color.text %>">
+          <span class="principal-class-index"><%= String(index + 1).padStart(2, '0') %></span>
+          <span class="principal-class-stripe"></span>
+          <span class="principal-class-body">
+            <span class="principal-class-name"><%= group.name %></span>
+            <span class="principal-class-meta">
+              <span class="principal-class-dot" style="background:<%= color.border %>"></span>
+              <%= group.student_count %> <%= group.student_count === 1 ? 'alumne' : 'alumnes' %>
+            </span>
+          </span>
+          <span class="principal-class-arrow">→</span>
+        </button>
+      </form>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>

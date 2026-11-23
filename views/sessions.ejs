@@ -1,0 +1,49 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<div class="row spread" style="margin-bottom: 18px;">
+  <span class="text-sm muted"><%= sessions.length %> sessions</span>
+  <% if (user.role === 'teacher') { %><a class="button" href="/sessions/new">+ Nova sessió</a><% } %>
+</div>
+
+<form class="filter-bar" method="get" action="/sessions">
+  <select name="class_id" class="grow">
+    <option value="">Totes les classes</option>
+    <% classes.forEach((classRow) => { %>
+      <option value="<%= classRow.id %>" <%= filters.class_id === String(classRow.id) ? 'selected' : '' %>><%= classRow.name %></option>
+    <% }) %>
+  </select>
+  <select name="status">
+    <option value="">Tots els estats</option>
+    <option value="planificada" <%= filters.status === 'planificada' ? 'selected' : '' %>>Planificada</option>
+    <option value="en_curs" <%= filters.status === 'en_curs' ? 'selected' : '' %>>En curs</option>
+    <option value="finalitzada" <%= filters.status === 'finalitzada' ? 'selected' : '' %>>Finalitzada</option>
+  </select>
+  <button class="button ghost" type="submit">Filtrar</button>
+  <% if (filters.class_id || filters.status) { %><a class="button ghost" href="/sessions">Neteja</a><% } %>
+</form>
+
+<section class="card">
+  <div class="table-wrap">
+    <% if (sessions.length === 0) { %>
+      <div class="empty"><span class="empty-icon">▤</span><strong>No hi ha sessions</strong>Programa una sessió o canvia els filtres.</div>
+    <% } else { %>
+    <table>
+      <thead><tr><th>Data</th><th>Sessió</th><th>Classe</th><th>Activitats</th><th>Estat</th><th></th></tr></thead>
+      <tbody>
+        <% sessions.forEach((session) => { %>
+        <tr>
+          <td><strong><%= formatDate(session.session_date) %></strong><br><small><%= session.start_time ? session.start_time + (session.end_time ? '–' + session.end_time : '') : '—' %></small></td>
+          <td><a class="table-link" href="/sessions/<%= session.id %>"><%= session.title %></a><br><small><%= session.objectives ? session.objectives.slice(0, 70) : '' %></small></td>
+          <td><span class="class-chip" style="<%= classColorStyle(session.class_color) %>"><%= session.class_name %></span></td>
+          <td><%= session.activity_count %></td>
+          <td><span class="badge <%= session.status === 'finalitzada' ? '' : session.status === 'en_curs' ? 'blue' : 'amber' %>"><%= statusLabel(session.status) %></span></td>
+          <td><a class="button small ghost" href="/sessions/<%= session.id %>">Obre</a></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,88 @@
+<%- include('partials/header', { title }) %>
+
+<div class="card" style="max-width: 860px;">
+  <div class="card-header"><h2><%= session ? 'Dades de la sessió' : 'Nova sessió' %></h2></div>
+  <div class="card-body">
+    <% if (error) { %><div class="alert danger"><%= error %></div><% } %>
+    <form method="post" action="<%= action %>" class="stack" style="gap: 16px;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="title">Títol de la sessió *</label>
+          <input id="title" name="title" required value="<%= session ? session.title || '' : '' %>" placeholder="Ex.: Introducció a les derivades">
+        </div>
+        <div class="field">
+          <label for="session_date">Data *</label>
+          <input id="session_date" name="session_date" type="date" required value="<%= session ? String(session.session_date).slice(0, 10) : '' %>">
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="start_time">Hora d'inici</label>
+          <input id="start_time" name="start_time" type="time" value="<%= session && session.start_time ? session.start_time : '' %>">
+        </div>
+        <div class="field">
+          <label for="end_time">Hora de fi</label>
+          <input id="end_time" name="end_time" type="time" value="<%= session && session.end_time ? session.end_time : '' %>">
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="class_id">Classe *</label>
+          <% if (session) { %>
+            <input type="hidden" name="class_id" value="<%= session.class_id %>">
+            <input type="text" disabled value="<%= session.class_name || '' %>">
+          <% } else { %>
+            <select id="class_id" name="class_id" required>
+              <% classes.forEach((classRow) => { %>
+                <option value="<%= classRow.id %>"><%= classRow.name %><%= classRow.subject ? ' · ' + classRow.subject : '' %></option>
+              <% }) %>
+            </select>
+          <% } %>
+        </div>
+        <div class="field">
+          <label for="status">Estat</label>
+          <select id="status" name="status">
+            <option value="planificada" <%= !session || session.status === 'planificada' ? 'selected' : '' %>>Planificada</option>
+            <option value="en_curs" <%= session && session.status === 'en_curs' ? 'selected' : '' %>>En curs</option>
+            <option value="finalitzada" <%= session && session.status === 'finalitzada' ? 'selected' : '' %>>Finalitzada</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="objectives">Objectius de la sessió</label>
+        <textarea id="objectives" name="objectives" rows="3"><%= session ? session.objectives || '' : '' %></textarea>
+      </div>
+
+      <div class="field">
+        <label for="notes">Notes i preparació</label>
+        <textarea id="notes" name="notes" rows="3"><%= session ? session.notes || '' : '' %></textarea>
+      </div>
+
+      <% if (!session) { %>
+      <div class="field">
+        <label for="activity_ids">Activitats de la sessió</label>
+        <select id="activity_ids" name="activity_ids" multiple size="6">
+          <% activities.forEach((activity) => { %>
+            <option value="<%= activity.id %>" <%= selectedActivities.includes(String(activity.id)) ? 'selected' : '' %>>
+              <%= activity.title %><%= activity.subject ? ' · ' + activity.subject : '' %>
+            </option>
+          <% }) %>
+        </select>
+        <span class="hint">Pots seleccionar-ne diverses amb Ctrl / Cmd. També les pots afegir després.</span>
+      </div>
+      <% } %>
+
+      <div class="form-actions">
+        <button class="button" type="submit"><%= session ? 'Desar canvis' : 'Crear sessió' %></button>
+        <a class="button ghost" href="<%= session ? '/sessions/' + session.id : '/sessions' %>">Cancel·la</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

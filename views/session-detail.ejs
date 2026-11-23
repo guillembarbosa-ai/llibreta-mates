@@ -1,0 +1,122 @@
+<%- include('partials/header', { title, subtitle }) %>
+
+<div class="grid main-side">
+  <div class="stack">
+    <section class="card">
+      <div class="card-body">
+        <div class="row" style="margin-bottom: 12px;">
+          <span class="badge <%= session.status === 'finalitzada' ? '' : session.status === 'en_curs' ? 'blue' : 'amber' %>"><%= statusLabel(session.status) %></span>
+          <span class="badge blue">◷ <%= formatDate(session.session_date) %><%= session.start_time ? ' · ' + session.start_time + (session.end_time ? '–' + session.end_time : '') : '' %></span>
+          <span class="class-chip" style="<%= classColorStyle(session.class_color) %>"><%= session.class_name %></span>
+        </div>
+        <% if (session.objectives) { %>
+          <h3 class="mb-0">Objectius</h3>
+          <p class="mt-0"><%= session.objectives %></p>
+        <% } %>
+        <% if (session.notes) { %>
+          <div class="feedback"><strong>Notes de preparació</strong><div style="white-space: pre-wrap;"><%= session.notes %></div></div>
+        <% } %>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header"><h2>Activitats de la sessió</h2><span class="text-sm muted"><%= activities.length %></span></div>
+      <div class="card-body" style="padding-top: 6px; padding-bottom: 6px;">
+        <% if (activities.length === 0) { %>
+          <div class="empty"><span class="empty-icon">◇</span><strong>Cap activitat assignada</strong>Afegeix-ne una perquè els alumnes puguin treballar.</div>
+        <% } else { %>
+          <% activities.forEach((activity) => { %>
+          <div class="activity-item">
+            <div class="item-main">
+              <h3><a class="table-link" href="/activities/<%= activity.id %>"><%= activity.title %></a></h3>
+              <p><%= activity.description ? activity.description.slice(0, 130) + (activity.description.length > 130 ? '…' : '') : '' %></p>
+              <div class="row">
+                <% if (activity.subject) { %><span class="badge blue"><%= activity.subject %></span><% } %>
+                <span class="badge"><%= difficultyLabel(activity.difficulty) %></span>
+                <% if (activity.due_at) { %><span class="badge amber">Lliurament: <%= formatDateTime(activity.due_at) %></span><% } %>
+                <% if (user.role === 'teacher') { %>
+                  <span class="text-xs muted"><%= activity.graded_count %>/<%= activity.submission_count %> corregits</span>
+                <% } else if (activity.my_submission_id) { %>
+                  <span class="badge <%= activity.my_grade !== null ? 'green' : 'blue' %>">
+                    <%= activity.my_grade !== null ? 'Nota: ' + Number(activity.my_grade).toFixed(1) : 'Lliurat' %>
+                  </span>
+                <% } else { %>
+                  <span class="badge amber">Pendent</span>
+                <% } %>
+              </div>
+              <% if (activity.instructions) { %><p class="text-sm" style="margin-top: 8px;"><strong>Instruccions:</strong> <%= activity.instructions %></p><% } %>
+            </div>
+            <% if (user.role === 'teacher') { %>
+              <a class="button small soft" href="/submissions?activity_id=<%= activity.id %>">Lliuraments</a>
+              <form method="post" action="/sessions/<%= session.id %>/activities/remove" data-confirm="Eliminar aquesta activitat de la sessió?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="assignment_id" value="<%= activity.id %>">
+                <button class="button small danger" type="submit">Treure</button>
+              </form>
+            <% } else { %>
+              <a class="button small" href="/submissions/new/<%= activity.id %>">
+                <%= activity.my_submission_id ? 'Veure lliurament' : 'Lliurar' %>
+              </a>
+            <% } %>
+          </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <% if (user.role === 'teacher') { %>
+    <section class="card">
+      <div class="card-header"><h3>Estat de la sessió</h3></div>
+      <div class="card-body">
+        <form method="post" action="/sessions/<%= session.id %>/status" class="stack" style="gap: 10px;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <select name="status">
+            <option value="planificada" <%= session.status === 'planificada' ? 'selected' : '' %>>Planificada</option>
+            <option value="en_curs" <%= session.status === 'en_curs' ? 'selected' : '' %>>En curs</option>
+            <option value="finalitzada" <%= session.status === 'finalitzada' ? 'selected' : '' %>>Finalitzada</option>
+          </select>
+          <button class="button block soft" type="submit">Actualitzar estat</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header"><h3>Afegir activitat</h3></div>
+      <div class="card-body">
+        <% if (availableActivities.length === 0) { %>
+          <p class="text-sm muted mb-0">No tens activitats lliures. <a href="/activities/new">Crea'n una</a>.</p>
+        <% } else { %>
+        <form method="post" action="/sessions/<%= session.id %>/activities" class="stack" style="gap: 12px;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div class="field"><label for="activity_id">Activitat</label>
+            <select id="activity_id" name="activity_id" required>
+              <% availableActivities.forEach((activity) => { %><option value="<%= activity.id %>"><%= activity.title %></option><% }) %>
+            </select>
+          </div>
+          <div class="field"><label for="instructions">Instruccions específiques</label><textarea id="instructions" name="instructions" rows="3"></textarea></div>
+          <div class="field"><label for="due_at">Data límit</label><input id="due_at" name="due_at" type="datetime-local"></div>
+          <button class="button block soft" type="submit">Afegir a la sessió</button>
+        </form>
+        <% } %>
+      </div>
+    </section>
+
+    <section class="card card-body stack" style="gap: 10px;">
+      <a class="button block ghost" href="/sessions/<%= session.id %>/edit">Editar sessió</a>
+      <form method="post" action="/sessions/<%= session.id %>/delete" data-confirm="Eliminar la sessió i els seus lliuraments?">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="button danger block" type="submit">Eliminar sessió</button>
+      </form>
+    </section>
+    <% } else { %>
+    <section class="card card-body">
+      <h3 class="mb-0">Alumnes de la classe</h3>
+      <p class="text-sm muted mt-0 mb-0"><%= students.length %> matriculats</p>
+    </section>
+    <% } %>
+  </aside>
+</div>
+
+<%- include('partials/footer') %>
